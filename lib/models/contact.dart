@@ -1,51 +1,47 @@
-// lib/models/contact.dart
-import 'package:flutter/foundation.dart';
-
 class Contact {
-  final int? id;             // local DB id
-  final int? userId;         // owner user id
-  final String name;         // contact name
-  final String phone;        // phone number (primary)
-  final String email;        // email
-  final String address;      // address (optional)
-  final String? photoPath;   // local filesystem path to contact photo (nullable)
-  final String? whatsapp;    // whatsapp phone number in international format, e.g. +21612345678
+  final int? id;
+  final int userId;
+  final String name;
+  final String phone;
+  final String? email;
+  final String? address;
+  final String? whatsapp;
+  final String? photoPath;
 
   Contact({
     this.id,
-    this.userId,
+    required this.userId,
     required this.name,
     required this.phone,
-    required this.email,
-    this.address = '',
-    this.photoPath,
+    this.email,
+    this.address,
     this.whatsapp,
+    this.photoPath,
   });
 
-  // Convert model -> map for SQLite insert/update
-  Map<String, dynamic> toMap() {
-    final map = <String, dynamic>{
-      'userId': userId,
+  factory Contact.fromJson(Map<String, dynamic> json) {
+    return Contact(
+      id: json['id'],
+      userId: json['user_id'],
+      name: json['name'],
+      phone: json['phone'],
+      email: json['email'],
+      address: json['address'],
+      whatsapp: json['whatsapp'],
+      photoPath: json['photo_path'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'user_id': userId,
       'name': name,
       'phone': phone,
       'email': email,
       'address': address,
-      'photoPath': photoPath,
       'whatsapp': whatsapp,
+      'photo_path': photoPath,
     };
-    if (id != null) map['id'] = id;
-    return map;
   }
-
-  // Create a Contact from a DB row map
-  factory Contact.fromMap(Map<String, dynamic> map) => Contact(
-        id: map['id'] as int?,
-        userId: map['userId'] as int?,
-        name: map['name'] ?? '',
-        phone: map['phone'] ?? '',
-        email: map['email'] ?? '',
-        address: map['address'] ?? '',
-        photoPath: map['photoPath'] as String?,
-        whatsapp: map['whatsapp'] as String?,
-      );
 }
+

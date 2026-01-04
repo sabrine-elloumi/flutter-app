@@ -1,5 +1,4 @@
 const app = require("./app");
-require("./config/db");
 
 const PORT = 3000;
 

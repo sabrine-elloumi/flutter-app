@@ -71,11 +71,12 @@ class _RegisterPageState extends State<RegisterPage> {
     final contactProvider = Provider.of<ContactProvider>(context, listen: false);
 
     final user = await auth.register(
-      name: _name.text.trim(),
-      email: _email.text.trim(),
-      phone: _phone.text.trim(),
-      password: _password.text.trim(),
+      _name.text.trim(),
+      _email.text.trim(),
+      _phone.text.trim(),
+      _password.text.trim(),
     );
+
 
     if (!mounted) return;
 

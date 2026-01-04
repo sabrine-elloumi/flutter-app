@@ -29,9 +29,10 @@ class _LoginPageState extends State<LoginPage> {
     final contactProvider = Provider.of<ContactProvider>(context, listen: false);
 
     final user = await auth.login(
-      email: _emailController.text.trim(),
-      password: _passwordController.text.trim(),
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
     );
+
 
     if (!mounted) return;
 

@@ -1,81 +1,54 @@
-// lib/screens/add_edit_contact_page.dart
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../models/contact.dart';
 import '../providers/contact_provider.dart';
 import '../service/auth_service.dart';
 
 class AddEditContactPage extends StatefulWidget {
-  final Contact? contact;
-  const AddEditContactPage({super.key, this.contact});
+  const AddEditContactPage({super.key});
 
   @override
   State<AddEditContactPage> createState() => _AddEditContactPageState();
 }
 
 class _AddEditContactPageState extends State<AddEditContactPage> {
-  late TextEditingController _name;
-  late TextEditingController _phone;
-  late TextEditingController _email;
-  late TextEditingController _address;
-  late TextEditingController _whatsapp;
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
 
-  String? _photoPath;
   bool _loading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _name = TextEditingController(text: widget.contact?.name ?? '');
-    _phone = TextEditingController(text: widget.contact?.phone ?? '');
-    _email = TextEditingController(text: widget.contact?.email ?? '');
-    _address = TextEditingController(text: widget.contact?.address ?? '');
-    _whatsapp = TextEditingController(text: widget.contact?.whatsapp ?? '');
-    _photoPath = widget.contact?.photoPath;
-  }
-
-  Future<void> _pickPhoto() async {
-    final picker = ImagePicker();
-    final XFile? picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked != null) setState(() => _photoPath = picked.path);
-  }
-
-  Future<void> _save() async {
-    if (_name.text.isEmpty || _phone.text.isEmpty) return;
+  Future<void> _saveContact() async {
+    if (_nameController.text.trim().isEmpty ||
+        _phoneController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Name and phone are required")),
+      );
+      return;
+    }
 
     setState(() => _loading = true);
 
+    final auth = Provider.of<AuthService>(context, listen: false);
     final provider = Provider.of<ContactProvider>(context, listen: false);
-    final userId = Provider.of<AuthService>(context, listen: false).currentUser!.id;
 
-    final newContact = Contact(
-      id: widget.contact?.id,
-      userId: userId,
-      name: _name.text.trim(),
-      phone: _phone.text.trim(),
-      email: _email.text.trim(),
-      address: _address.text.trim(),
-      photoPath: _photoPath,
-      whatsapp: _whatsapp.text.trim(),
+    final contact = Contact(
+      userId: auth.currentUser!.id,
+      name: _nameController.text.trim(),
+      phone: _phoneController.text.trim(),
+      email: _emailController.text.trim(),
     );
 
-    if (widget.contact == null) {
-      await provider.addContact(newContact);
-    } else {
-      await provider.updateContact(newContact);
-    }
+    await provider.addContact(contact);
 
     if (!mounted) return;
     Navigator.pop(context);
   }
 
-  InputDecoration fieldDecoration(String label, Widget icon) {
+  InputDecoration _decoration(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
-      prefixIcon: icon,
+      prefixIcon: Icon(icon, color: Colors.green),
       filled: true,
       fillColor: Colors.white,
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -87,70 +60,44 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
     return Scaffold(
       backgroundColor: Colors.green.shade50,
       appBar: AppBar(
-        title: Text(widget.contact == null ? "Add Contact" : "Edit Contact"),
+        title: const Text("Add Contact"),
         backgroundColor: Colors.green,
       ),
-      body: SingleChildScrollView(
+      body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            GestureDetector(
-              onTap: _pickPhoto,
-              child: CircleAvatar(
-                radius: 45,
-                backgroundImage: _photoPath != null ? FileImage(File(_photoPath!)) : null,
-                child: _photoPath == null ? const Icon(Icons.person, size: 45) : null,
-              ),
+            TextField(
+              controller: _nameController,
+              decoration: _decoration("Name", Icons.person),
             ),
-            const SizedBox(height: 15),
+            const SizedBox(height: 12),
 
             TextField(
-              controller: _name,
-              decoration: fieldDecoration("Name", const Icon(Icons.person, color: Colors.green)),
-            ),
-            const SizedBox(height: 10),
-
-            TextField(
-              controller: _phone,
-              decoration: fieldDecoration("Phone", const Icon(Icons.phone, color: Colors.green)),
+              controller: _phoneController,
               keyboardType: TextInputType.phone,
+              decoration: _decoration("Phone", Icons.phone),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
 
             TextField(
-              controller: _email,
-              decoration: fieldDecoration("Email", const Icon(Icons.email, color: Colors.green)),
+              controller: _emailController,
               keyboardType: TextInputType.emailAddress,
+              decoration: _decoration("Email", Icons.email),
             ),
-            const SizedBox(height: 10),
-
-            TextField(
-              controller: _address,
-              decoration: fieldDecoration("Address", const Icon(Icons.home, color: Colors.green)),
-            ),
-            const SizedBox(height: 10),
-
-            TextField(
-              controller: _whatsapp,
-              decoration: fieldDecoration(
-                "WhatsApp (+countrycode)",
-                const FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green),
-              ),
-              keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 25),
 
             ElevatedButton(
-              onPressed: _loading ? null : _save,
+              onPressed: _loading ? null : _saveContact,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
                 minimumSize: const Size.fromHeight(50),
               ),
               child: _loading
                   ? const CircularProgressIndicator(color: Colors.white)
-                  : Text(
-                      widget.contact == null ? "Add Contact" : "Save Contact",
-                      style: const TextStyle(fontSize: 18),
+                  : const Text(
+                      "Save Contact",
+                      style: TextStyle(fontSize: 18),
                     ),
             ),
           ],
